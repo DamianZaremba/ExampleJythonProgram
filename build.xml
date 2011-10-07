@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="build" name="ExampleJythonApp">
+	<!-- Paths which we reference everywhere -->
+	<property name="src" location="src"/>
+	<property name="lib" location="lib"/>
+	<property name="build" location="build"/>
+	<property name="bin" location="bin"/>
+
+	<!-- This finds all the libs we need for javac -->
+	<path id="build.classpath">
+		<fileset dir="${lib}">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+
+	<!-- This creates all the dirs we need -->
+	<target name="init" depends="clean">
+		<mkdir dir="${bin}"/>
+		<mkdir dir="${build}"/>
+		<mkdir dir="${build}/manager"/>
+		<mkdir dir="${build}/loader"/>
+	</target>
+
+	<!-- This compiles the java and copies the python into the build dir -->
+	<target name="compile" depends="init" description="compile the source">
+		<javac srcdir="${src}" destdir="${build}" includeantruntime="no">
+			<classpath refid="build.classpath"/>
+			<exclude name="manager/"/> <!-- We copy these files next (python) -->
+		</javac>
+
+		<copy todir="${build}/manager">
+			<fileset dir="${src}/manager"/>
+		</copy>
+	</target>
+
+	<!-- This creats the jar -->
+	<target name="build" depends="compile" description="generate the jar">
+		<jar destfile="${bin}/ExampleJythonApp.jar" basedir="${build}">
+			<!-- This gets all our libs and unzips them into our jar -->
+			<zipgroupfileset dir="${lib}" includes="*.jar"/>
+
+			<!-- This is our MANIFEST file -->
+			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+				<attribute name="Main-Class" value="loader.Main"/>
+				<attribute name="Class-Path" value="${mf.classpath}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<!-- This cleans up the tmp dirs we use -->
+	<target name="clean" description="clean up">
+		<delete dir="${build}"/>
+	</target>
+</project>
